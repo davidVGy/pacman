@@ -1,14 +1,17 @@
 #ifndef GAMEGUI_H
 #define GAMEGUI_H
 #include <QWidget>
+#include "actor.h"
+#include <QGraphicsView>
 
-class gamegui : public QWidget
+class gamegui : public QGraphicsView
 {
-    Q_OBJECT
+//    Q_OBJECT
 
 public:
-    gamegui();
-
+    gamegui(QWidget * parent = 0);
+    Actor * actor;
+     QGraphicsScene * scene;
 private:
 
 };

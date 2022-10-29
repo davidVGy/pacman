@@ -20,3 +20,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     actor.h \
     gamegui.h
+
+RESOURCES += \
+    res.qrc

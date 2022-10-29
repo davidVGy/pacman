@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>img/letters.png</file>
+        <file>img/pacman_sheet.png</file>
+    </qresource>
+</RCC>
