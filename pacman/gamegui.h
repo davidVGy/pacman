@@ -6,12 +6,12 @@
 
 class gamegui : public QGraphicsView
 {
-//    Q_OBJECT
+    Q_OBJECT
 
 public:
     gamegui(QWidget * parent = 0);
     Actor * actor;
-     QGraphicsScene * scene;
+
 private:
 
 };
