@@ -1,6 +1,7 @@
 #include "arena.h"
 #include <QGraphicsTextItem>
 #include <QImage>
+#include "gamegui.h"
 
 Arena::Arena()
 {
@@ -25,7 +26,7 @@ void Arena::create_scene()
 
     //edit image and push like background
     img_bg = img_bg.copy(228, 0, 224, 248);
-    img_bg = img_bg.scaled(2*img_bg.size(), Qt::KeepAspectRatio);
+    img_bg = img_bg.scaled((ZOOM * img_bg.size()), Qt::KeepAspectRatio);
     scene->setSceneRect(0, 0, img_bg.width(), img_bg.height());
     scene->setBackgroundBrush(QBrush(img_bg));
 

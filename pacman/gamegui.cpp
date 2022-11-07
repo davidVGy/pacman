@@ -5,6 +5,7 @@
 #include <QImage>
 #include "arena.h"
 
+
 gamegui::gamegui(QWidget * parent)
 {
     Arena arena;
@@ -18,7 +19,8 @@ gamegui::gamegui(QWidget * parent)
 
     // create the player
     actor = new Actor(&arena, 0);
-    actor->setPos(98,133); // TODO generalize to always be in the middle bottom of screen
+    actor->create_pacman();
+    actor->setPos(4*ZOOM,4*ZOOM); // TODO generalize to always be in the middle bottom of screen
       // make the player focusable and set it to be the current focus
       actor->setFlag(QGraphicsItem::ItemIsFocusable);
       actor->setFocus();

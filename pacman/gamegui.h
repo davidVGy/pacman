@@ -4,6 +4,8 @@
 #include "actor.h"
 #include <QGraphicsView>
 
+#define ZOOM 1
+
 class gamegui : public QGraphicsView
 {
     Q_OBJECT

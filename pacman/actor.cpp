@@ -10,65 +10,234 @@
 #include <stdlib.h> // rand() -> really large int
 #include "arena.h"
 #include <iostream>
+#include "gamegui.h"
+
+/*every actor is a rect of size 16x16 */
+#define W           16 * ZOOM
+#define H           16 * ZOOM
+
+/*with this macro I change the point by chek respect the points of the rect*/
+#define CHANGEPOINT   4 * ZOOM
 
 Actor::Actor(Arena *mapGame, QGraphicsItem *parent) : QObject(), QGraphicsPixmapItem(parent)
 {
     mapGame->get_walls();
     map = mapGame->walls;
+    pixmap.load(":/images/img/pacman_sheet.png");
+}
 
+void Actor::create_pacman()
+{
     // drew the rect
-    QPixmap pixmap(":/images/img/pacman_sheet.png");
-    pacman = pixmap.copy(473,1,12,13);
-    pacman = pacman.scaled(2*pacman.size(),Qt::KeepAspectRatio);
+    pacman = pixmap.copy(472,0,W,H);
+    pacman = pacman.scaled((ZOOM * pacman.size()),Qt::KeepAspectRatio);
     setPixmap(pacman);
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(move()));
-    timer -> start(12);
-
-
+    timer -> start(14/ZOOM);
 }
 
 void Actor::move()
 {
-    int pos_x = pos().x();
-    int pos_y = pos().y();
-//    static int pos_back[2];
-//    pos_back[0] = pos_x;
-//    pos_back[1] = pos_y;
+    int pos_x = pos().x() + 8*ZOOM;
+    int pos_y = pos().y() + 8*ZOOM;
+    int mid = 8*ZOOM;
+
+    Actor::collide();
+
     if (keypress == LEFT){
+        pos_x -= mid;
         if (map[pos_y][pos_x] == 0 && map[pos_y][pos_x - 1] == 0)
-        setPos(x() - 1,y());
+        {
+            setPos(x() - 1,y());
+            moveX = 1;
+            moveY = 0;
+            pacman = pixmap.copy(472,16,W,H);
+            pacman = pacman.scaled((ZOOM * pacman.size()),Qt::KeepAspectRatio);
+            setPixmap(pacman);
+       }
     }
     else if (keypress == RIGHT){
-        pos_x += pacman.width();
+        pos_x += mid- 1;
         if (map[pos_y][pos_x] == 0 && map[pos_y][pos_x + 1] == 0)
-        setPos(x() + 1,y());
+        {
+            setPos(x() + 1,y());
+            moveX = 1;
+            moveY = 0;
+            pacman = pixmap.copy(472,0,W,H);
+            pacman = pacman.scaled((ZOOM * pacman.size()),Qt::KeepAspectRatio);
+            setPixmap(pacman);
+        }
     }
     else if (keypress == UP){
+        pos_y -= mid;
         if (map[pos_y][pos_x] == 0 && map[pos_y - 1][pos_x] == 0)
-        setPos(x(),y() - 1);
+        {
+            setPos(x(),y() - 1);
+            moveX = 0;
+            moveY = 1;
+            pacman = pixmap.copy(472,32,W,H);
+            pacman = pacman.scaled((ZOOM * pacman.size()),Qt::KeepAspectRatio);
+            setPixmap(pacman);
+        }
+
     }
     else if (keypress == DOWN){
-        pos_y += pacman.height();
+        pos_y += mid - 1;
         if (map[pos_y][pos_x] == 0 && map[pos_y + 1][pos_x] == 0)
-        setPos(x(),y() + 1);
+        {
+            setPos(x(),y() + 1);
+            moveX = 0;
+            moveY = 1;
+            pacman = pixmap.copy(472,48,W,H);
+            pacman = pacman.scaled((ZOOM * pacman.size()),Qt::KeepAspectRatio);
+            setPixmap(pacman);
+        }
+    }
+    else
+    {
+        keypress = IDLE;
+        moveX = 0;
+        moveY = 0;
+    }
+}
+
+void Actor::collide()
+{
+    int pos_x = pos().x();
+    int pos_y = pos().y();
+    /*get the four points of the rect that contains the Actor*/
+                         /*  y  ,  x  */
+    int points[4][2] =  {{pos_y, pos_x},                    //left-up
+                         {pos_y + H - 1, pos_x},            //left-down
+                         {pos_y, pos_x + W - 1},            //right-up
+                         {pos_y + H - 1, pos_x + W - 1}};   //right-down
+
+    if(keypress == IDLE || keypress_next == IDLE)
+    {
+        return;
+    }
+
+    /*check if the position is multiple of 8, in these points the actors can turn*/
+    if(((pos_y - 4*ZOOM) % (8*ZOOM)) == 0 && ((pos_x - 4*ZOOM) % (8*ZOOM)) == 0)
+    {
+        canTurn = 1;
+    }
+    else
+    {
+        canTurn = 0;
+    }
+
+
+
+    if(changeDirection && canTurn){           /*if I have to change direction and I can turn*/
+        if (keypress_next == LEFT){
+            /*check if the two points to right of actor of 1 more position aren't a wall */
+            //                 left-up
+            if (map[points[0][0] + CHANGEPOINT][points[0][1] - 1] == 0
+                //             left-down
+                    && map[points[1][0] - CHANGEPOINT][points[1][1] - 1] == 0)
+            {
+                keypress = keypress_next;
+                keypress_next = IDLE;
+                changeYtoX = 0;
+            }
+        }
+        else if(keypress_next == RIGHT)
+        {
+            //                 right-up
+            if (map[points[2][0] + CHANGEPOINT][points[2][1] + 1] == 0
+                //             right-down
+                    && map[points[3][0] - CHANGEPOINT][points[3][1] + 1] == 0)
+            {
+                keypress = keypress_next;
+                keypress_next = IDLE;
+                changeYtoX = 0;
+            }
+        }
+        else if (keypress_next == UP){
+            //              left-up
+            if (map[points[0][0] - 1][points[0][1] + CHANGEPOINT] == 0
+                //             right-up
+                    && map[points[2][0] - 1][points[2][1] - CHANGEPOINT] == 0)
+            {
+                keypress = keypress_next;
+                keypress_next = IDLE;
+                changeXtoY = 0;
+            }
+        }
+        else if(keypress_next == DOWN)
+        {
+            //              left-down
+            if (map[points[1][0] + 1][points[1][1] + CHANGEPOINT] == 0
+                //             right-down
+                    && map[points[3][0] + 1][points[3][1] - CHANGEPOINT] == 0)
+            {
+                keypress = keypress_next;
+                keypress_next = IDLE;
+                changeXtoY = 0;
+            }
+        }
+
     }
 }
 
 void Actor::keyPressEvent(QKeyEvent * event){
     // move the player left and right
     if (event->key() == Qt::Key_Left){
-        keypress = LEFT;
+
+        if(moveY)
+        {
+            keypress_next = LEFT;
+            changeDirection = 1;
+        }
+        else
+        {
+            keypress = LEFT;
+            changeDirection = 0;
+        }
+
     }
     else if (event->key() == Qt::Key_Right){
-        keypress = RIGHT;
+        if(moveY)
+        {
+            keypress_next = RIGHT;
+            changeDirection = 1;
+        }
+        else
+        {
+            keypress = RIGHT;
+            changeDirection = 0;
+        }
+
+
     }
     else if (event->key() == Qt::Key_Up){
-        keypress = UP;
+        if(moveX)
+        {
+            keypress_next = UP;
+            changeDirection = 1;
+        }
+        else
+        {
+            keypress = UP;
+            changeDirection = 0;
+        }
+
     }
     else if (event->key() == Qt::Key_Down){
-        keypress = DOWN;
+        if(moveX)
+        {
+            keypress_next = DOWN;
+            changeDirection = 1;
+        }
+        else
+        {
+            keypress = DOWN;
+            changeDirection = 0;
+        }
+
     }
 
     // shoot with the spacebar
