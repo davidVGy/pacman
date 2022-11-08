@@ -12,9 +12,13 @@
 #include <iostream>
 #include "gamegui.h"
 
-/*every actor is a rect of size 16x16 */
+/*every actor is a rect of size 16x16 dynamic*/
 #define W           16 * ZOOM
 #define H           16 * ZOOM
+
+/*size of actor*/
+#define ACTORW      16
+#define ACTORH      16
 
 /*with this macro I change the point by chek respect the points of the rect*/
 #define CHANGEPOINT   4 * ZOOM
@@ -29,13 +33,36 @@ Actor::Actor(Arena *mapGame, QGraphicsItem *parent) : QObject(), QGraphicsPixmap
 void Actor::create_pacman()
 {
     // drew the rect
-    pacman = pixmap.copy(472,0,W,H);
+    pacman = pixmap.copy(472, 0, ACTORW, ACTORH);
     pacman = pacman.scaled((ZOOM * pacman.size()),Qt::KeepAspectRatio);
     setPixmap(pacman);
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(move()));
-    timer -> start(14/ZOOM);
+    timer -> start(16/ZOOM);
+}
+
+void Actor::setSprite()
+{
+    int pointx, pointy;
+    static int count = 0;
+
+    if(keypress == IDLE)
+    {
+        return;
+    }
+
+    pointx = SPRITES[keypress][count][0];
+    pointy = SPRITES[keypress][count][1];
+
+    pacman = pixmap.copy(pointx, pointy, ACTORW, ACTORH);
+    pacman = pacman.scaled((ZOOM * pacman.size()), Qt::KeepAspectRatio);
+    setPixmap(pacman);
+
+    if(count > 1)
+        count = 0;
+    else
+        count++;
 }
 
 void Actor::move()
@@ -43,43 +70,45 @@ void Actor::move()
     int pos_x = pos().x() + 8*ZOOM;
     int pos_y = pos().y() + 8*ZOOM;
     int mid = 8*ZOOM;
+    static int count1 = 0;
 
     Actor::collide();
+    if(count1 == 8 && (moveX || moveY))
+    {
+        Actor::setSprite();
+        count1 = 0;
+    }
+    else
+        count1++;
 
     if (keypress == LEFT){
         pos_x -= mid;
         if (map[pos_y][pos_x] == 0 && map[pos_y][pos_x - 1] == 0)
         {
-            setPos(x() - 1,y());
+            setPos(x() - 1, y());
             moveX = 1;
             moveY = 0;
-            pacman = pixmap.copy(472,16,W,H);
-            pacman = pacman.scaled((ZOOM * pacman.size()),Qt::KeepAspectRatio);
-            setPixmap(pacman);
+            return;
        }
     }
     else if (keypress == RIGHT){
-        pos_x += mid- 1;
+        pos_x += mid - 1;
         if (map[pos_y][pos_x] == 0 && map[pos_y][pos_x + 1] == 0)
         {
-            setPos(x() + 1,y());
+            setPos(x() + 1, y());
             moveX = 1;
             moveY = 0;
-            pacman = pixmap.copy(472,0,W,H);
-            pacman = pacman.scaled((ZOOM * pacman.size()),Qt::KeepAspectRatio);
-            setPixmap(pacman);
+            return;
         }
     }
     else if (keypress == UP){
         pos_y -= mid;
         if (map[pos_y][pos_x] == 0 && map[pos_y - 1][pos_x] == 0)
         {
-            setPos(x(),y() - 1);
+            setPos(x(), y() - 1);
             moveX = 0;
             moveY = 1;
-            pacman = pixmap.copy(472,32,W,H);
-            pacman = pacman.scaled((ZOOM * pacman.size()),Qt::KeepAspectRatio);
-            setPixmap(pacman);
+            return;
         }
 
     }
@@ -87,20 +116,29 @@ void Actor::move()
         pos_y += mid - 1;
         if (map[pos_y][pos_x] == 0 && map[pos_y + 1][pos_x] == 0)
         {
-            setPos(x(),y() + 1);
+            setPos(x(), y() + 1);
             moveX = 0;
             moveY = 1;
-            pacman = pixmap.copy(472,48,W,H);
-            pacman = pacman.scaled((ZOOM * pacman.size()),Qt::KeepAspectRatio);
-            setPixmap(pacman);
+            return;
         }
     }
     else
     {
-        keypress = IDLE;
-        moveX = 0;
-        moveY = 0;
+        count1 = 0;
+        return;
+
     }
+
+    if(moveX || moveY)
+    {
+        pacman = pixmap.copy(SPRITES[keypress][1][0], SPRITES[keypress][1][1], ACTORW, ACTORH);
+        pacman = pacman.scaled((ZOOM * pacman.size()),Qt::KeepAspectRatio);
+        setPixmap(pacman);
+    }
+    keypress = IDLE;
+    moveX = 0;
+    moveY = 0;
+
 }
 
 void Actor::collide()
@@ -134,9 +172,9 @@ void Actor::collide()
     if(changeDirection && canTurn){           /*if I have to change direction and I can turn*/
         if (keypress_next == LEFT){
             /*check if the two points to right of actor of 1 more position aren't a wall */
-            //                 left-up
+            //                 mid-left-up
             if (map[points[0][0] + CHANGEPOINT][points[0][1] - 1] == 0
-                //             left-down
+                //             mid-left-down
                     && map[points[1][0] - CHANGEPOINT][points[1][1] - 1] == 0)
             {
                 keypress = keypress_next;
@@ -146,9 +184,9 @@ void Actor::collide()
         }
         else if(keypress_next == RIGHT)
         {
-            //                 right-up
+            //                 mid-right-up
             if (map[points[2][0] + CHANGEPOINT][points[2][1] + 1] == 0
-                //             right-down
+                //             mid-right-down
                     && map[points[3][0] - CHANGEPOINT][points[3][1] + 1] == 0)
             {
                 keypress = keypress_next;
@@ -157,9 +195,9 @@ void Actor::collide()
             }
         }
         else if (keypress_next == UP){
-            //              left-up
+            //              mid-left-up
             if (map[points[0][0] - 1][points[0][1] + CHANGEPOINT] == 0
-                //             right-up
+                //             mid-right-up
                     && map[points[2][0] - 1][points[2][1] - CHANGEPOINT] == 0)
             {
                 keypress = keypress_next;
@@ -169,11 +207,14 @@ void Actor::collide()
         }
         else if(keypress_next == DOWN)
         {
-            //              left-down
+            //              mid-left-down
             if (map[points[1][0] + 1][points[1][1] + CHANGEPOINT] == 0
                 //             right-down
-                    && map[points[3][0] + 1][points[3][1] - CHANGEPOINT] == 0)
-            {
+                    && map[points[1][0] + 1][points[1][1]] == 0
+                //             mid-right-down
+                    && map[points[3][0] + 1][points[3][1] - CHANGEPOINT] == 0
+                //             right-down
+                    && map[points[3][0] + 1][points[3][1]] == 0)            {
                 keypress = keypress_next;
                 keypress_next = IDLE;
                 changeXtoY = 0;
