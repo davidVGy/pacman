@@ -19,6 +19,7 @@ public:
     void create_pacman();
     void collide();
     void setSprite();
+    void cookieAte();
 
 public slots:
     void move();

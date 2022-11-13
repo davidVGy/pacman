@@ -10,6 +10,8 @@ CONFIG -= app_bundle
 SOURCES += \
         actor.cpp \
         arena.cpp \
+        cookie.cpp \
+        game.cpp \
         gamegui.cpp \
         main.cpp
 
@@ -21,6 +23,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     actor.h \
     arena.h \
+    cookie.h \
+    game.h \
     gamegui.h
 
 RESOURCES += \

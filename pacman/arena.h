@@ -13,7 +13,13 @@ public:
     void  get_walls();
     QGraphicsScene * scene;
     QPixmap img_bg;
+    QPixmap mapImg;
     vector<vector<int>> walls;
+    QPixmap cookieMap;
+    vector<vector<int>> posCookies;
+    int Cknum = 0;
+    void get_cookies();
+
 };
 
 #endif // ARENA_H
