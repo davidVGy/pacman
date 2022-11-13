@@ -4,7 +4,6 @@
 #include <QTimer>
 #include <QGraphicsScene>
 #include <QKeyEvent>
-#include <QList>
 #include <QPainter>
 #include <QTimer>
 #include <stdlib.h> // rand() -> really large int
@@ -47,7 +46,7 @@ void Actor::setSprite()
     int pointx, pointy;
     static int count = 0;
 
-    if(keypress == IDLE)
+    if(keypress == IDLE) //avoid reading array when in IDLE
     {
         return;
     }
@@ -59,7 +58,7 @@ void Actor::setSprite()
     pacman = pacman.scaled((ZOOM * pacman.size()), Qt::KeepAspectRatio);
     setPixmap(pacman);
 
-    if(count > 1)
+    if(count > 1) //to alternate the sequence
         count = 0;
     else
         count++;
@@ -67,22 +66,25 @@ void Actor::setSprite()
 
 void Actor::move()
 {
-    int pos_x = pos().x() + 8*ZOOM;
-    int pos_y = pos().y() + 8*ZOOM;
-    int mid = 8*ZOOM;
-    static int count1 = 0;
+    int pos_x           = pos().x() + 8*ZOOM;
+    int pos_y           = pos().y() + 8*ZOOM;
+    int mid             = 8*ZOOM;
+    static int count    = 0;
 
     Actor::collide();
-    if(count1 == 8 && (moveX || moveY))
+
+    //check the counter and if the actor is moving
+    if(count == 4*ZOOM && (moveX || moveY))
     {
         Actor::setSprite();
-        count1 = 0;
+        count = 0;
     }
-    else
-        count1++;
+    else count++;
 
-    if (keypress == LEFT){
+    switch (keypress) {
+    case LEFT:
         pos_x -= mid;
+        //check the current pos and the future pos
         if (map[pos_y][pos_x] == 0 && map[pos_y][pos_x - 1] == 0)
         {
             setPos(x() - 1, y());
@@ -90,8 +92,8 @@ void Actor::move()
             moveY = 0;
             return;
        }
-    }
-    else if (keypress == RIGHT){
+        break;
+    case RIGHT:
         pos_x += mid - 1;
         if (map[pos_y][pos_x] == 0 && map[pos_y][pos_x + 1] == 0)
         {
@@ -100,8 +102,8 @@ void Actor::move()
             moveY = 0;
             return;
         }
-    }
-    else if (keypress == UP){
+        break;
+    case UP:
         pos_y -= mid;
         if (map[pos_y][pos_x] == 0 && map[pos_y - 1][pos_x] == 0)
         {
@@ -110,9 +112,8 @@ void Actor::move()
             moveY = 1;
             return;
         }
-
-    }
-    else if (keypress == DOWN){
+    break;
+    case DOWN:
         pos_y += mid - 1;
         if (map[pos_y][pos_x] == 0 && map[pos_y + 1][pos_x] == 0)
         {
@@ -121,20 +122,23 @@ void Actor::move()
             moveY = 1;
             return;
         }
-    }
-    else
-    {
-        count1 = 0;
+        break;
+    default:
+        count = 0;  //reset counter if in IDLE
         return;
-
+        break;
     }
 
-    if(moveX || moveY)
+    //if I arrive here is because there is a collision against the wall
+    if(moveX || moveY)  //only once time after collision
     {
+        //set the second sprite when there is a collision
         pacman = pixmap.copy(SPRITES[keypress][1][0], SPRITES[keypress][1][1], ACTORW, ACTORH);
         pacman = pacman.scaled((ZOOM * pacman.size()),Qt::KeepAspectRatio);
         setPixmap(pacman);
     }
+
+    //set parameters after collision
     keypress = IDLE;
     moveX = 0;
     moveY = 0;
@@ -168,9 +172,9 @@ void Actor::collide()
     }
 
 
-
     if(changeDirection && canTurn){           /*if I have to change direction and I can turn*/
-        if (keypress_next == LEFT){
+        switch (keypress_next) {
+        case LEFT:
             /*check if the two points to right of actor of 1 more position aren't a wall */
             //                 mid-left-up
             if (map[points[0][0] + CHANGEPOINT][points[0][1] - 1] == 0
@@ -181,9 +185,8 @@ void Actor::collide()
                 keypress_next = IDLE;
                 changeYtoX = 0;
             }
-        }
-        else if(keypress_next == RIGHT)
-        {
+            break;
+        case RIGHT:
             //                 mid-right-up
             if (map[points[2][0] + CHANGEPOINT][points[2][1] + 1] == 0
                 //             mid-right-down
@@ -193,8 +196,8 @@ void Actor::collide()
                 keypress_next = IDLE;
                 changeYtoX = 0;
             }
-        }
-        else if (keypress_next == UP){
+            break;
+        case UP:
             //              mid-left-up
             if (map[points[0][0] - 1][points[0][1] + CHANGEPOINT] == 0
                 //             mid-right-up
@@ -204,9 +207,8 @@ void Actor::collide()
                 keypress_next = IDLE;
                 changeXtoY = 0;
             }
-        }
-        else if(keypress_next == DOWN)
-        {
+        break;
+        case DOWN:
             //              mid-left-down
             if (map[points[1][0] + 1][points[1][1] + CHANGEPOINT] == 0
                 //             right-down
@@ -219,15 +221,17 @@ void Actor::collide()
                 keypress_next = IDLE;
                 changeXtoY = 0;
             }
+            break;
+        default:
+            break;
         }
-
     }
 }
 
 void Actor::keyPressEvent(QKeyEvent * event){
     // move the player left and right
-    if (event->key() == Qt::Key_Left){
-
+    switch (event->key()) {
+    case Qt::Key_Left:
         if(moveY)
         {
             keypress_next = LEFT;
@@ -238,9 +242,8 @@ void Actor::keyPressEvent(QKeyEvent * event){
             keypress = LEFT;
             changeDirection = 0;
         }
-
-    }
-    else if (event->key() == Qt::Key_Right){
+        break;
+    case Qt::Key_Right:
         if(moveY)
         {
             keypress_next = RIGHT;
@@ -251,10 +254,8 @@ void Actor::keyPressEvent(QKeyEvent * event){
             keypress = RIGHT;
             changeDirection = 0;
         }
-
-
-    }
-    else if (event->key() == Qt::Key_Up){
+        break;
+    case Qt::Key_Up:
         if(moveX)
         {
             keypress_next = UP;
@@ -266,8 +267,8 @@ void Actor::keyPressEvent(QKeyEvent * event){
             changeDirection = 0;
         }
 
-    }
-    else if (event->key() == Qt::Key_Down){
+    break;
+    case Qt::Key_Down:
         if(moveX)
         {
             keypress_next = DOWN;
@@ -278,7 +279,9 @@ void Actor::keyPressEvent(QKeyEvent * event){
             keypress = DOWN;
             changeDirection = 0;
         }
-
+        break;
+    default:
+        break;
     }
 
     // shoot with the spacebar
@@ -297,4 +300,10 @@ void Actor::keyPressEvent(QKeyEvent * event){
 //        }
 
 //    }
+
+}
+
+void Actor::cookieAte()
+{
+
 }

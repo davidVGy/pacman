@@ -2,6 +2,7 @@
 #define GAMEGUI_H
 #include <QWidget>
 #include "actor.h"
+#include "cookie.h"
 #include <QGraphicsView>
 
 #define ZOOM 2
@@ -13,6 +14,7 @@ class gamegui : public QGraphicsView
 public:
     gamegui(QWidget * parent = 0);
     Actor * actor;
+    Cookie *itemCookie;
 
 private:
 
