@@ -8,7 +8,7 @@
 #include <QTimer>
 #include <arena.h>
 
-class Actor : public QObject,public QGraphicsPixmapItem
+class Actor : public QObject, public QGraphicsPixmapItem
 {
     Q_OBJECT
 public:
@@ -19,10 +19,12 @@ public:
     void create_pacman();
     void collide();
     void setSprite();
-    void cookieAte();
 
 public slots:
     void move();
+
+signals:
+    void valueChanged();
 
 private:
     QTimer * timer;

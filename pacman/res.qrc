@@ -3,4 +3,14 @@
         <file>img/letters.png</file>
         <file>img/pacman_sheet.png</file>
     </qresource>
+    <qresource prefix="/sounds">
+        <file>sounds/Pacman Dies.mp3</file>
+        <file>sounds/Pacman Eating Cherry.mp3</file>
+        <file>sounds/Pacman Eating Ghost.mp3</file>
+        <file>sounds/Pacman Extra Live.mp3</file>
+        <file>sounds/Pacman Intermission.mp3</file>
+        <file>sounds/Pacman Opening Song.mp3</file>
+        <file>sounds/Pacman Siren.mp3</file>
+        <file>sounds/Pacman Waka Waka.mp3</file>
+    </qresource>
 </RCC>

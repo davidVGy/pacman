@@ -10,6 +10,7 @@
 #include "arena.h"
 #include <iostream>
 #include "gamegui.h"
+#include <QObject>
 
 /*every actor is a rect of size 16x16 dynamic*/
 #define W           16 * ZOOM
@@ -90,6 +91,7 @@ void Actor::move()
             setPos(x() - 1, y());
             moveX = 1;
             moveY = 0;
+            emit valueChanged();
             return;
        }
         break;
@@ -100,6 +102,7 @@ void Actor::move()
             setPos(x() + 1, y());
             moveX = 1;
             moveY = 0;
+            emit valueChanged();
             return;
         }
         break;
@@ -110,6 +113,7 @@ void Actor::move()
             setPos(x(), y() - 1);
             moveX = 0;
             moveY = 1;
+            emit valueChanged();
             return;
         }
     break;
@@ -120,6 +124,7 @@ void Actor::move()
             setPos(x(), y() + 1);
             moveX = 0;
             moveY = 1;
+            emit valueChanged();
             return;
         }
         break;
@@ -303,7 +308,4 @@ void Actor::keyPressEvent(QKeyEvent * event){
 
 }
 
-void Actor::cookieAte()
-{
-//    bool coll = actor->collidesWithItem(cookie[5], Qt::IntersectsItemShape);
-}
+
